@@ -7,7 +7,7 @@ __author__ = 'Zitong Lu'
 import numpy as np
 from scipy.stats import pearsonr
 import math
-from neurora.stuff import show_progressbar
+from neurora.utils import show_progressbar
 
 np.seterr(divide='ignore', invalid='ignore')
 

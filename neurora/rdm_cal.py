@@ -5,10 +5,10 @@
 __author__ = 'Zitong Lu'
 
 import numpy as np
-from neurora.stuff import limtozero
+from neurora.utils import limtozero
 import math
 from scipy.stats import pearsonr
-from neurora.stuff import show_progressbar
+from neurora.utils import show_progressbar
 
 np.seterr(divide='ignore', invalid='ignore')
 
@@ -147,7 +147,7 @@ def bhvRDM(bhv_data, sub_opt=1, method="correlation", abs=False):
     # calculate the values in RDM
     for i in range(cons):
         for j in range(cons):
-            if method is 'correlation':
+            if method == 'correlation':
                 # calculate the Pearson Coefficient
                 r = pearsonr(data[i], data[j])[0]
                 # calculate the dissimilarity
@@ -155,13 +155,13 @@ def bhvRDM(bhv_data, sub_opt=1, method="correlation", abs=False):
                     rdm[i, j] = limtozero(1 - np.abs(r))
                 else:
                     rdm[i, j] = limtozero(1 - r)
-            elif method is 'euclidean':
+            elif method == 'euclidean':
                 rdm[i, j] = np.linalg.norm(data[i]-data[j])
-            elif method is 'mahalanobis':
+            elif method == 'mahalanobis':
                 X = np.transpose(np.vstack((data[i], data[j])), (1, 0))
                 X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
                 rdm[i, j] = np.linalg.norm(X[:, 0]-X[:, 1])
-    if method is 'euclidean' or method is 'mahalanobis':
+    if method == 'euclidean' or method == 'mahalanobis':
         max = np.max(rdm)
         min = np.min(rdm)
         rdm = (rdm-min)/(max-min)
@@ -286,7 +286,7 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 
                         for l in range(cons):
                             for m in range(cons):
-                                if method is 'correlation':
+                                if method == 'correlation':
                                     # calculate the Pearson Coefficient
                                     r = pearsonr(data[i, j, k, l], data[i, j, k, m])[0]
                                     # calculate the dissimilarity
@@ -294,13 +294,13 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
                                         rdms[i, j, k, l, m] = limtozero(1 - np.abs(r))
                                     else:
                                         rdms[i, j, k, l, m] = limtozero(1 - r)
-                                elif method is 'euclidean':
+                                elif method == 'euclidean':
                                     rdms[i, j, k, l, m] = np.linalg.norm(data[i, j, k, l] - data[i, j, k, m])
-                                elif method is 'mahalanobis':
+                                elif method == 'mahalanobis':
                                     X = np.transpose(np.vstack((data[i, j, k, l], data[i, j, k, m])), (1, 0))
                                     X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
                                     rdms[i, j, k, l, m] = np.linalg.norm(X[:, 0] - X[:, 1])
-                        if method is 'euclidean' or method is 'mahalanobis':
+                        if method == 'euclidean' or method == 'mahalanobis':
                             max = np.max(rdms[i, j, k])
                             min = np.min(rdms[i, j, k])
                             rdms[i, j, k] = (rdms[i, j, k] - min) / (max - min)
@@ -340,7 +340,7 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 
                 for l in range(cons):
                     for m in range(cons):
-                        if method is 'correlation':
+                        if method == 'correlation':
                             # calculate the Pearson Coefficient
                             r = pearsonr(data[i, k, l], data[i, k, m])[0]
                             # calculate the dissimilarity
@@ -348,13 +348,13 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
                                 rdms[i, k, l, m] = limtozero(1 - np.abs(r))
                             else:
                                 rdms[i, k, l, m] = limtozero(1 - r)
-                        elif method is 'euclidean':
+                        elif method == 'euclidean':
                             rdms[i, k, l, m] = np.linalg.norm(data[i, k, l] - data[i, k, m])
-                        elif method is 'mahalanobis':
+                        elif method == 'mahalanobis':
                             X = np.transpose(np.vstack((data[i, k, l], data[i, k, m])), (1, 0))
                             X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
                             rdms[i, k, l, m] = np.linalg.norm(X[:, 0] - X[:, 1])
-                if method is 'euclidean' or method is 'mahalanobis':
+                if method == 'euclidean' or method == 'mahalanobis':
                     max = np.max(rdms[i, k])
                     min = np.min(rdms[i, k])
                     rdms[i, k] = (rdms[i, k] - min) / (max - min)
@@ -400,7 +400,7 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 
                 for k in range(cons):
                     for l in range(cons):
-                        if method is 'correlation':
+                        if method == 'correlation':
                             # calculate the Pearson Coefficient
                             r = pearsonr(data[k, i, j], data[l, i, j])[0]
                             # calculate the dissimilarity
@@ -408,13 +408,13 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
                                 rdms[i, j, k, l] = limtozero(1 - np.abs(r))
                             else:
                                 rdms[i, j, k, l] = limtozero(1 - r)
-                        elif method is 'euclidean':
+                        elif method == 'euclidean':
                             rdms[i, j, k, l] = np.linalg.norm(data[k, i, j] - data[k, i, j])
-                        elif method is 'mahalanobis':
+                        elif method == 'mahalanobis':
                             X = np.transpose(np.vstack((data[k, i, j], data[l, i, j])), (1, 0))
                             X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
                             rdms[i, j, k, l] = np.linalg.norm(X[:, 0] - X[:, 1])
-                if method is 'euclidean' or method is 'mahalanobis':
+                if method == 'euclidean' or method == 'mahalanobis':
                     max = np.max(rdms[i, j])
                     min = np.min(rdms[i, j])
                     rdms[i, j] = (rdms[i, j] - min) / (max - min)
@@ -458,7 +458,7 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
     for i in range(subs):
         for j in range(cons):
             for k in range(cons):
-                if method is 'correlation':
+                if method == 'correlation':
                     # calculate the Pearson Coefficient
                     r = pearsonr(data[j, i], data[k, i])[0]
                     # calculate the dissimilarity
@@ -466,13 +466,13 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
                         rdms[i, j, k] = limtozero(1 - np.abs(r))
                     else:
                         rdms[i, j, k] = limtozero(1 - r)
-                elif method is 'euclidean':
+                elif method == 'euclidean':
                     rdms[i, j, k] = np.linalg.norm(data[j, i] - data[k, i])
-                elif method is 'mahalanobis':
+                elif method == 'mahalanobis':
                     X = np.transpose(np.vstack((data[j, i], data[k, i])), (1, 0))
                     X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
                     rdms[i, j, k] = np.linalg.norm(X[:, 0] - X[:, 1])
-        if method is 'euclidean' or method is 'mahalanobis':
+        if method == 'euclidean' or method == 'mahalanobis':
             max = np.max(rdms[i])
             min = np.min(rdms[i])
             rdms[i] = (rdms[i] - min) / (max - min)
@@ -605,7 +605,7 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
                             # no NaN
                             if (np.isnan(data[:, x, y, z, i]).any() == False) and \
                                     (np.isnan(data[:, x, y, z, j]).any() == False):
-                                if method is 'correlation':
+                                if method == 'correlation':
                                     # calculate the Pearson Coefficient
                                     r = pearsonr(data[sub, x, y, z, i], data[sub, x, y, z, j])[0]
                                     # calculate the dissimilarity
@@ -613,13 +613,13 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
                                         subrdms[sub, x, y, z, i, j] = limtozero(1 - np.abs(r))
                                     else:
                                         subrdms[sub, x, y, z, i, j] = limtozero(1 - r)
-                                elif method is 'euclidean':
+                                elif method == 'euclidean':
                                     subrdms[sub, x, y, z, i, j] = np.linalg.norm(data[sub, x, y, z, i] - data[sub, x, y, z, j])
-                                elif method is 'mahalanobis':
+                                elif method == 'mahalanobis':
                                     X = np.transpose(np.vstack((data[sub, x, y, z, i], data[sub, x, y, z, j])), (1, 0))
                                     X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
                                     subrdms[sub, x, y, z, i, j] = np.linalg.norm(X[:, 0] - X[:, 1])
-                    if method is 'euclidean' or method is 'mahalanobis':
+                    if method == 'euclidean' or method == 'mahalanobis':
                         max = np.max(subrdms[sub, x, y, z])
                         min = np.min(subrdms[sub, x, y, z])
                         subrdms[sub, x, y, z] = (subrdms[sub, x, y, z] - min) / (max - min)
@@ -733,7 +733,7 @@ def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False
             for j in range(ncons):
 
                 if (np.isnan(data[:, i]).any() == False) and (np.isnan(data[:, j]).any() == False):
-                    if method is 'correlation':
+                    if method == 'correlation':
                         # calculate the Pearson Coefficient
                         r = pearsonr(data[sub, i], data[sub, j])[0]
                         # calculate the dissimilarity
@@ -741,13 +741,13 @@ def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False
                             subrdms[sub, i, j] = limtozero(1 - np.abs(r))
                         else:
                             subrdms[sub, i, j] = limtozero(1 - r)
-                    elif method is 'euclidean':
+                    elif method == 'euclidean':
                         subrdms[sub, i, j] = np.linalg.norm(data[sub, i] - data[sub, j])
-                    elif method is 'mahalanobis':
+                    elif method == 'mahalanobis':
                         X = np.transpose(np.vstack((data[sub, i], data[sub, j])), (1, 0))
                         X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
                         subrdms[sub, i, j] = np.linalg.norm(X[:, 0] - X[:, 1])
-        if method is 'euclidean' or method is 'mahalanobis':
+        if method == 'euclidean' or method == 'mahalanobis':
             max = np.max(subrdms[sub])
             min = np.min(subrdms[sub])
             subrdms[sub] = (subrdms[sub] - min) / (max - min)

@@ -7,7 +7,7 @@ __author__ = 'Zitong Lu'
 import numpy as np
 from neurora.rdm_corr import rdm_correlation_spearman, rdm_correlation_pearson, rdm_correlation_kendall, \
     rdm_similarity, rdm_distance
-from neurora.stuff import show_progressbar
+from neurora.utils import show_progressbar
 
 np.seterr(divide='ignore', invalid='ignore')
 

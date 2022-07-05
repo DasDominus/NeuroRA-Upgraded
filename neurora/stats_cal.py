@@ -6,7 +6,7 @@ __author__ = 'Zitong Lu'
 
 import numpy as np
 from scipy.stats import ttest_1samp, ttest_rel, ttest_ind
-from neurora.stuff import permutation_test
+from neurora.utils import permutation_test
 
 
 ' a function for conducting the statistical analysis for results of EEG-like data '

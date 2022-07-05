@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.preprocessing import StandardScaler
-from neurora.stuff import show_progressbar
+from neurora.utils import show_progressbar
 
 np.seterr(divide='ignore', invalid='ignore')
 

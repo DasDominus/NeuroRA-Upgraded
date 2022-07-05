@@ -9,7 +9,7 @@ import nibabel as nib
 from nilearn.image import smooth_img
 import math
 from scipy.stats import t
-from neurora.stuff import fwe_correct, fdr_correct, cluster_fwe_correct, cluster_fdr_correct, get_HOcort, get_bg_ch2bet,\
+from neurora.utils import fwe_correct, fdr_correct, cluster_fwe_correct, cluster_fdr_correct, get_HOcort, get_bg_ch2bet,\
     mask_to
 from neurora.rsa_plot import plot_brainrsa_rlts
 

@@ -10,7 +10,7 @@ from nilearn.image import index_img, mean_img
 import numpy as np
 import pandas as pd
 import nibabel as nib
-from neurora.stuff import get_affine, datamask
+from neurora.utils import get_affine, datamask
 from neurora.nps_cal import nps_fmri, nps_fmri_roi
 from neurora.rsa_plot import plot_rdm
 from neurora.rdm_cal import fmriRDM_roi, fmriRDM

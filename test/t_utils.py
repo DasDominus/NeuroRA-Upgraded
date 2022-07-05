@@ -7,7 +7,7 @@ __author__ = 'Zitong Lu'
 import os
 import numpy as np
 import unittest
-from neurora.stuff import limtozero, get_affine, fisherz_rdm, fwe_correct, fdr_correct, correct_by_threshold, \
+from neurora.utils import limtozero, get_affine, fisherz_rdm, fwe_correct, fdr_correct, correct_by_threshold, \
     get_bg_ch2, get_bg_ch2bet, get_HOcort, datamask, position_to_mni, mask_to, permutation_test, permutation_corr
 
 class test_stuff(unittest.TestCase):

@@ -12,7 +12,7 @@ import numpy as np
 import scipy.io as sio
 import h5py
 from sklearn.svm import SVC
-from neurora.stuff import permutation_test
+from neurora.utils import permutation_test
 from sklearn.metrics import accuracy_score
 from six.moves import urllib
 import matplotlib.pyplot as plt
