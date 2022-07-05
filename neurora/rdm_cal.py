@@ -4,6 +4,8 @@
 
 __author__ = 'Zitong Lu'
 
+from typing import Callable, Optional
+
 import numpy as np
 from neurora.utils import limtozero
 import math
@@ -12,11 +14,10 @@ from neurora.utils import show_progressbar
 
 np.seterr(divide='ignore', invalid='ignore')
 
-
 ' a function for calculating the RDM(s) based on behavioral data '
 
-def bhvRDM(bhv_data, sub_opt=1, method="correlation", abs=False):
 
+def bhvRDM(bhv_data, sub_opt=1, method="correlation", abs=False):
     """
     Calculate the Representational Dissimilarity Matrix(Matrices) - RDM(s) for behavioral data
 
@@ -55,7 +56,6 @@ def bhvRDM(bhv_data, sub_opt=1, method="correlation", abs=False):
     """
 
     if len(np.shape(bhv_data)) != 3:
-
         print("\nThe shape of input for bhvEEG() function must be [n_cons, n_subs, n_trials].\n")
 
         return "Invalid input!"
@@ -81,7 +81,7 @@ def bhvRDM(bhv_data, sub_opt=1, method="correlation", abs=False):
 
     # save the number of trials of each condition
     if len(set(n_trials)) != 1:
-            return None
+        return None
 
     # sub_opt=1
 
@@ -99,7 +99,7 @@ def bhvRDM(bhv_data, sub_opt=1, method="correlation", abs=False):
                 for j in range(cons):
                     # calculate the difference
                     if abs == True:
-                        rdm[i, j] = np.abs(np.average(bhv_data[i, sub])-np.average(bhv_data[j, sub]))
+                        rdm[i, j] = np.abs(np.average(bhv_data[i, sub]) - np.average(bhv_data[j, sub]))
                     else:
                         rdm[i, j] = np.average(bhv_data[i, sub]) - np.average(bhv_data[j, sub])
 
@@ -156,15 +156,15 @@ def bhvRDM(bhv_data, sub_opt=1, method="correlation", abs=False):
                 else:
                     rdm[i, j] = limtozero(1 - r)
             elif method == 'euclidean':
-                rdm[i, j] = np.linalg.norm(data[i]-data[j])
+                rdm[i, j] = np.linalg.norm(data[i] - data[j])
             elif method == 'mahalanobis':
                 X = np.transpose(np.vstack((data[i], data[j])), (1, 0))
                 X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
-                rdm[i, j] = np.linalg.norm(X[:, 0]-X[:, 1])
+                rdm[i, j] = np.linalg.norm(X[:, 0] - X[:, 1])
     if method == 'euclidean' or method == 'mahalanobis':
         max = np.max(rdm)
         min = np.min(rdm)
-        rdm = (rdm-min)/(max-min)
+        rdm = (rdm - min) / (max - min)
 
     print("\nRDM computing finished!")
 
@@ -173,8 +173,8 @@ def bhvRDM(bhv_data, sub_opt=1, method="correlation", abs=False):
 
 ' a function for calculating the RDM(s) based on EEG/MEG/fNIRS data '
 
-def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, method="correlation", abs=False):
 
+def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, method="correlation", abs=False):
     """
     Calculate the Representational Dissimilarity Matrix(Matrices) - RDM(s) based on EEG-like data
 
@@ -241,7 +241,6 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
     """
 
     if len(np.shape(EEG_data)) != 5:
-
         print("The shape of input for eegRDM() function must be [n_cons, n_subs, n_trials, n_chls, n_ts].\n")
 
         return "Invalid input!"
@@ -270,7 +269,7 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 
         if chl_opt == 1:
 
-            total = subs*chls*ts
+            total = subs * chls * ts
 
             # initialize the RDMs
             rdms = np.zeros([subs, chls, ts, cons, cons], dtype=np.float64)
@@ -281,7 +280,7 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
                     for k in range(ts):
 
                         # show the progressbar
-                        percent = (i*chls*ts+j*ts+k) / total * 100
+                        percent = (i * chls * ts + j * ts + k) / total * 100
                         show_progressbar("Calculating", percent)
 
                         for l in range(cons):
@@ -307,14 +306,12 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 
             # time_opt=1 & chl_opt=1 & sub_opt=1
             if sub_opt == 1:
-
                 print("\nRDMs computing finished!")
 
                 return rdms
 
             # time_opt=1 & chl_opt=1 & sub_opt=0
             if sub_opt == 0:
-
                 rdms = np.average(rdms, axis=0)
 
                 print("\nRDMs computing finished!")
@@ -324,7 +321,7 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
         # if chl_opt = 0
 
         data = np.transpose(data, (0, 2, 3, 4, 1))
-        data = np.reshape(data, [subs, ts, cons, time_win*chls])
+        data = np.reshape(data, [subs, ts, cons, time_win * chls])
 
         rdms = np.zeros([subs, ts, cons, cons], dtype=np.float64)
 
@@ -361,20 +358,17 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 
         # time_opt=1 & chl_opt=0 & sub_opt=1
         if sub_opt == 1:
-
             print("\nRDMs computing finished!")
 
             return rdms
 
         # time_opt=1 & chl_opt=0 & sub_opt=0
         if sub_opt == 0:
-
             rdms = np.average(rdms, axis=0)
 
             print("\nRDM computing finished!")
 
             return rdms
-
 
     # if time_opt = 0
 
@@ -421,14 +415,12 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 
         # time_opt=0 & chl_opt=1 & sub_opt=1
         if sub_opt == 1:
-
             print("\nRDM computing finished!")
 
             return rdms
 
         # time_opt=0 & chl_opt=1 & sub_opt=0
         if sub_opt == 0:
-
             rdms = np.average(rdms, axis=0)
 
             print("\nRDM computing finished!")
@@ -478,13 +470,11 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
             rdms[i] = (rdms[i] - min) / (max - min)
 
     if sub_opt == 1:
-
         print("\nRDMs computing finished!")
 
         return rdms
 
     if sub_opt == 0:
-
         rdms = np.average(rdms, axis=0)
 
         print("\nRDM computing finished!")
@@ -494,8 +484,8 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 
 ' a function for calculating the RDMs based on fMRI data (searchlight) '
 
-def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="correlation", abs=False):
 
+def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="correlation", abs=False):
     """
     Calculate the Representational Dissimilarity Matrices (RDMs) based on fMRI data (searchlight)
 
@@ -534,7 +524,6 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
     """
 
     if len(np.shape(fmri_data)) != 5:
-
         print("\nThe shape of input for fmriRDM() function must be [n_cons, n_subs, nx, ny, nz].\n")
 
         return "Invalid input!"
@@ -553,12 +542,12 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
     sz = strides[2]
 
     # calculate the number of the calculation units in the x, y, z directions
-    n_x = int((nx - kx) / sx)+1
-    n_y = int((ny - ky) / sy)+1
-    n_z = int((nz - kz) / sz)+1
+    n_x = int((nx - kx) / sx) + 1
+    n_y = int((ny - ky) / sy) + 1
+    n_z = int((nz - kz) / sz) + 1
 
     # initialize the data for calculating the RDM
-    data = np.full([n_x, n_y, n_z, cons, kx*ky*kz, subs], np.nan)
+    data = np.full([n_x, n_y, n_z, cons, kx * ky * kz, subs], np.nan)
 
     print("\nComputing RDMs")
 
@@ -574,7 +563,7 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
                         for k2 in range(ky):
                             for k3 in range(kz):
                                 for j in range(subs):
-                                    data[x, y, z, i, index, j] = fmri_data[i, j, x+k1, y+k2, z+k3]
+                                    data[x, y, z, i, index, j] = fmri_data[i, j, x + k1, y + k2, z + k3]
 
                                 index = index + 1
 
@@ -583,7 +572,7 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
     data = np.transpose(data, (5, 0, 1, 2, 3, 4))
 
     # flatten the data for different calculating conditions
-    data = np.reshape(data, [subs, n_x, n_y, n_z, cons, kx*ky*kz])
+    data = np.reshape(data, [subs, n_x, n_y, n_z, cons, kx * ky * kz])
 
     # initialize the RDMs
     subrdms = np.full([subs, n_x, n_y, n_z, cons, cons], np.nan)
@@ -614,7 +603,8 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
                                     else:
                                         subrdms[sub, x, y, z, i, j] = limtozero(1 - r)
                                 elif method == 'euclidean':
-                                    subrdms[sub, x, y, z, i, j] = np.linalg.norm(data[sub, x, y, z, i] - data[sub, x, y, z, j])
+                                    subrdms[sub, x, y, z, i, j] = np.linalg.norm(
+                                        data[sub, x, y, z, i] - data[sub, x, y, z, j])
                                 elif method == 'mahalanobis':
                                     X = np.transpose(np.vstack((data[sub, x, y, z, i], data[sub, x, y, z, j])), (1, 0))
                                     X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
@@ -630,18 +620,18 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
     print("\nRDMs computing finished!")
 
     if sub_opt == 0:
-
         return rdms
 
     if sub_opt == 1:
-
         return subrdms
 
 
 ' a function for calculating the RDM based on fMRI data of a ROI '
 
-def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False):
 
+def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False,
+                custom_method: Optional[Callable] = None,
+                normalization_method: Optional[Callable] = None):
     """
     Calculate the Representational Dissimilarity Matrix - RDM(s) based on fMRI data (for ROI)
 
@@ -679,7 +669,6 @@ def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False
     """
 
     if len(np.shape(fmri_data)) != 5 or len(np.shape(mask_data)) != 3:
-
         print("\nThe shape of inputs (fmri_data & mask_data) for fmriRDM_roi() function should be [n_cons, "
               "n_subs, nx, ny, nz] & [nx, ny, nz], respectively.\n")
 
@@ -696,7 +685,7 @@ def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False
             for k in range(nz):
 
                 # not 0 or NaN
-                if (mask_data[i, j, k] != 0) and (math.isnan(mask_data[i, j, k]) == False)\
+                if (mask_data[i, j, k] != 0) and (math.isnan(mask_data[i, j, k]) == False) \
                         and (np.isnan(fmri_data[:, :, i, j, k]).any() == False):
                     n = n + 1
 
@@ -716,7 +705,7 @@ def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False
                     for k in range(nz):
 
                         # not 0 or NaN
-                        if (mask_data[i, j, k] != 0) and (math.isnan(mask_data[i, j, k]) == False)\
+                        if (mask_data[i, j, k] != 0) and (math.isnan(mask_data[i, j, k]) == False) \
                                 and (np.isnan(fmri_data[:, :, i, j, k]).any() == False):
                             data[p, q, n] = fmri_data[p, q, i, j, k]
                             n = n + 1
@@ -731,7 +720,6 @@ def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False
     for sub in range(nsubs):
         for i in range(ncons):
             for j in range(ncons):
-
                 if (np.isnan(data[:, i]).any() == False) and (np.isnan(data[:, j]).any() == False):
                     if method == 'correlation':
                         # calculate the Pearson Coefficient
@@ -747,6 +735,14 @@ def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False
                         X = np.transpose(np.vstack((data[sub, i], data[sub, j])), (1, 0))
                         X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
                         subrdms[sub, i, j] = np.linalg.norm(X[:, 0] - X[:, 1])
+                    elif method == 'custom' and custom_method is not None:
+                        subrdms[sub, i, j] = custom_method(data[sub, i], data[sub, j])
+        # Try custom Normalization method
+        if normalization_method is not None:
+            subrdms[sub] = normalization_method(subrdms[sub])
+            continue
+
+        # Use Linear Scaling Normalization as default
         if method == 'euclidean' or method == 'mahalanobis':
             max = np.max(subrdms[sub])
             min = np.min(subrdms[sub])
@@ -756,13 +752,11 @@ def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False
     rdm = np.average(subrdms, axis=0)
 
     if sub_opt == 0:
-
         print("\nRDM computing finished!")
 
         return rdm
 
     if sub_opt == 1:
-
         print("\nRDMs computing finished!")
 
         return subrdms

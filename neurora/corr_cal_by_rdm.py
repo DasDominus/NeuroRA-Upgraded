@@ -235,13 +235,13 @@ def fmrirdms_corr(demo_rdm, fmri_rdms, method="spearman", rescale=False, permuta
 
         print("\nThe shape of the demo RDM should be [n_cons, n_cons].\n")
 
-        return "Invalid input!"
+        raise ValueError(f'Invalid Demo Shape {np.shape(demo_rdm)}')
 
     if len(np.shape(fmri_rdms)) != 5 or np.shape(fmri_rdms)[3] != np.shape(fmri_rdms)[4]:
 
         print("\nThe shape of the fMRI RDMs should be [n_x, n_y, n_z, n_cons, n_cons].\n")
 
-        return "Invalid input!"
+        raise ValueError(f'Invalid fMRI RDM Shape {np.shape(fmri_rdms)} {len(np.shape(fmri_rdms))}')
 
     # calculate the number of the calculation units in the x, y, z directions
     n_x = np.shape(fmri_rdms)[0]
