@@ -2,8 +2,10 @@
 
 ' a module for saving the RSA results in a .nii file for fMRI '
 
-__author__ = 'Zitong Lu'
+__author__ = 'Zitong Lu; Rex Guy'
 
+import os
+from pathlib import Path
 import numpy as np
 import nibabel as nib
 from nilearn.image import smooth_img
@@ -163,14 +165,6 @@ def corr_save_nii(corrs, affine, filename=None, corr_mask=get_HOcort(), size=[60
     # set filename for result .nii file
     if filename == None:
         filename = "rsa_result.nii"
-    else:
-        q = ".nii" in filename
-
-        if q == True:
-            filename = filename
-        else:
-            filename = filename+".nii"
-
 
     # corr_mask != None
     # use the mask file to correct RSA results
@@ -192,20 +186,20 @@ def corr_save_nii(corrs, affine, filename=None, corr_mask=get_HOcort(), size=[60
                     if (math.isnan(mask[i, j, k]) is True) or mask[i, j, k] == 0:
                         newimg_nii[i, j, k] = np.nan
 
-    print(filename)
-
-    print("Save RSA results.")
+    print(f"Save RSA results to {filename}.")
 
     # save the .nii file for RSA results
-    file = nib.Nifti1Image(newimg_nii, affine)
+    ni_img = nib.Nifti1Image(newimg_nii, affine)
 
 
     if smooth == True:
         # smooth the img data of the .nii file
-        file = smooth_img(file, fwhm='fast')
+        ni_img = smooth_img(ni_img, fwhm='fast')
 
     # save the result
-    nib.save(file, filename)
+    # cast fn to path
+    fn = filename
+    nib.save(ni_img, fn)
 
 
     # determine if it has results

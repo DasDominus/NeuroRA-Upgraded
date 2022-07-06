@@ -1433,7 +1433,8 @@ def plot_brainrsa_regions(img, threshold=None, background=get_bg_ch2(), type='r'
 
 ' a function for plotting the RSA-result by different cuts '
 
-def plot_brainrsa_montage(img, threshold=None, slice=[6, 6, 6], background=get_bg_ch2bet(), type='r'):
+def plot_brainrsa_montage(img, threshold=None, slice=[6, 6, 6], background=get_bg_ch2bet(), type='r',
+                          save_to_file=None):
 
     """
     Plot the RSA-result by different cuts
@@ -1493,7 +1494,10 @@ def plot_brainrsa_montage(img, threshold=None, slice=[6, 6, 6], background=get_b
             plotting.plot_stat_map(stat_map_img=img, bg_img=background, display_mode='z', cut_coords=slice_z,
                                 title="Similarity -axial", draw_cross=True, vmax=vmax)
 
-        plt.show()
+        if save_to_file:
+            plt.savefig(save_to_file)
+        else:
+            plt.show()
 
     return 0
 
