@@ -485,10 +485,10 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 ' a function for calculating the RDMs based on fMRI data (searchlight) '
 
 
-def fmriRDM(
+def fmriRDM_optimized(
         fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="correlation", abs=False,
         save_pval: str = None
-):
+) -> np.ndarray:
     """
     Calculate the Representational Dissimilarity Matrices (RDMs) based on fMRI data (searchlight)
 
@@ -518,6 +518,154 @@ def fmriRDM(
     save_pval: str. Output path to save the corresponding p value for rdm. Currently supports
         pearson only.
 
+    Returns
+    -------
+    RDM : array
+        The fMRI-Searchlight RDM.
+        If sub_opt=0, the shape of RDMs is [n_x, n_y, n_z, n_cons, n_cons].
+        If sub_opt=1, the shape of RDMs is [n_subs, n_x, n_y, n_cons, n_cons]
+        n_subs, n_x, n_y, n_z represent the number of subjects & the number of calculation units for searchlight along
+        the x, y, z axis.
+    """
+
+    if len(np.shape(fmri_data)) != 5:
+        print("\nThe shape of input for fmriRDM() function must be [n_cons, n_subs, nx, ny, nz].\n")
+
+        return "Invalid input!"
+
+    # get the number of conditions, subjects and the size of the fMRI-img
+    cons, subs, nx, ny, nz = np.shape(fmri_data)
+
+    # the size of the calculation units for searchlight
+    kx = ksize[0]
+    ky = ksize[1]
+    kz = ksize[2]
+
+    # strides for calculating along the x, y, z axis
+    sx = strides[0]
+    sy = strides[1]
+    sz = strides[2]
+
+    # calculate the number of the calculation units in the x, y, z directions
+    n_x = int((nx - kx) / sx) + 1
+    n_y = int((ny - ky) / sy) + 1
+    n_z = int((nz - kz) / sz) + 1
+
+    # initialize the data for calculating the RDM
+    data = np.full([subs, n_x, n_y, n_z, cons, kx * ky * kz], np.nan)
+
+    print("\nComputing RDMs")
+
+    # initialize the RDMs
+    subrdms = np.full([subs, n_x, n_y, n_z, cons, cons], np.nan)
+
+    rdms_pval = np.full([subs, n_x, n_y, n_z, cons, cons], np.nan)
+
+    # assignment
+    total = n_x * n_y * n_z * subs
+
+    for sub in range(subs):
+        for x in range(n_x):
+            for y in range(n_y):
+                for z in range(n_z):
+
+                    # show the progressbar
+                    percent = (sub * n_x * n_y * n_z + x * n_y * n_z + y * n_z + z) / total * 100
+                    show_progressbar("Searchlight", percent)
+
+                    index = 0
+
+                    # Get Searchlight data
+                    for k1 in range(kx):
+                        for k2 in range(ky):
+                            for k3 in range(kz):
+                                for con in range(cons):
+                                    data[sub, x, y, z, con, index] = fmri_data[con, sub, x + k1, y + k2, z + k3]
+
+                                index = index + 1
+
+                    for i in range(cons):
+                        for j in range(cons):
+
+                            # no NaN
+                            if (np.isnan(data[sub, x, y, z, i]).any() == False) and \
+                                    (np.isnan(data[sub, x, y, z, j]).any() == False):
+                                if method == 'correlation':
+                                    # calculate the Pearson Coefficient
+                                    pr = pearsonr(data[sub, x, y, z, i], data[sub, x, y, z, j])
+                                    # calculate the dissimilarity
+                                    if abs == True:
+                                        subrdms[sub, x, y, z, i, j] = limtozero(1 - np.abs(pr[0]))
+                                    else:
+                                        subrdms[sub, x, y, z, i, j] = limtozero(1 - pr[0])
+
+                                    if save_pval:
+                                        rdms_pval[sub, x, y, z, i, j] = pr[1]
+                                elif method == 'euclidean':
+                                    subrdms[sub, x, y, z, i, j] = np.linalg.norm(
+                                        data[sub, x, y, z, i] - data[sub, x, y, z, j])
+                                elif method == 'mahalanobis':
+                                    X = np.transpose(np.vstack((data[sub, x, y, z, i], data[sub, x, y, z, j])), (1, 0))
+                                    X = np.dot(X, np.linalg.inv(np.cov(X, rowvar=False)))
+                                    subrdms[sub, x, y, z, i, j] = np.linalg.norm(X[:, 0] - X[:, 1])
+                    if method == 'euclidean' or method == 'mahalanobis':
+                        max = np.max(subrdms[sub, x, y, z])
+                        min = np.min(subrdms[sub, x, y, z])
+                        subrdms[sub, x, y, z] = (subrdms[sub, x, y, z] - min) / (max - min)
+        break
+
+    # shape of data: [n_x, n_y, n_z, cons, kx*ky*kz, subs]
+    #              ->[subs, n_x, n_y, n_z, cons, kx*ky*kz]
+    # data = np.transpose(data, (5, 0, 1, 2, 3, 4))
+
+    # flatten the data for different calculating conditions
+    # data = np.reshape(data, [subs, n_x, n_y, n_z, cons, kx * ky * kz])
+
+    # average the RDMs
+    rdms = np.average(subrdms, axis=0)
+    if save_pval:
+        rdms_pval_avg = np.average(rdms_pval, axis=0)
+        np.save(save_pval, rdms_pval_avg)
+
+    print("\nRDMs computing finished!")
+
+    if sub_opt == 0:
+        return rdms
+
+    if sub_opt == 1:
+        return subrdms
+
+def fmriRDM(
+        fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="correlation", abs=False,
+        save_pval: str = None
+):
+    """
+    Calculate the Representational Dissimilarity Matrices (RDMs) based on fMRI data (searchlight)
+    Parameters
+    ----------
+    fmri_data : array
+        The fmri data.
+        The shape of fmri_data must be [n_cons, n_subs, nx, ny, nz]. n_cons, nx, ny, nz represent the number of
+        conditions, the number of subs & the size of fMRI-img, respectively.
+    ksize : array or list [kx, ky, kz]. Default is [3, 3, 3].
+        The size of the calculation unit for searchlight.
+        kx, ky, kz represent the number of voxels along the x, y, z axis.
+        kx, ky, kz should be odd.
+    strides : array or list [sx, sy, sz]. Default is [1, 1, 1].
+        The strides for calculating along the x, y, z axis.
+    sub_opt: int 0 or 1. Default is 1.
+        Return the subject-result or average-result.
+        If sub_opt=0, return the average result.
+        If sub_opt=1, return the results of each subject.
+    method : string 'correlation' or 'euclidean' or 'mahalanobis'. Default is 'correlation'.
+        The method to calculate the dissimilarities.
+        If method='correlation', the dissimilarity is calculated by Pearson Correlation.
+        If method='euclidean', the dissimilarity is calculated by Euclidean Distance, the results will be normalized.
+        If method='mahalanobis', the dissimilarity is calculated by Mahalanobis Distance, the results will be normalized.
+    abs : boolean True or False. Default is True.
+        Calculate the absolute value of Pearson r or not.
+    save_pval: str. Output path to save the corresponding p value for rdm. Currently supports
+        pearson only.
     Returns
     -------
     RDM : array
@@ -644,7 +792,7 @@ def fmriRDM(
 
 def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False,
                 custom_method: Optional[Callable] = None,
-                normalization_method: Optional[Callable] = None):
+                normalization_method: Optional[Callable] = None) -> np.ndarray:
     """
     Calculate the Representational Dissimilarity Matrix - RDM(s) based on fMRI data (for ROI)
 
