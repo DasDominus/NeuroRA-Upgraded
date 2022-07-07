@@ -15,11 +15,11 @@ from neurora.utils import get_affine, correct_by_threshold, get_bg_ch2, get_bg_c
     clusterbased_permutation_1d_1samp_1sided, clusterbased_permutation_2d_1samp_1sided
 from decimal import Decimal
 
-
 ' a function for plotting the RDM '
 
-def plot_rdm(rdm, percentile=False, rescale=False, lim=[0, 1], conditions=None, con_fontsize=12, cmap=None):
 
+def plot_rdm(rdm, percentile=False, rescale=False, lim=[0, 1], conditions=None, con_fontsize=12, cmap=None,
+             save_to_file=None, title: str = None):
     """
     Plot the RDM
 
@@ -46,7 +46,6 @@ def plot_rdm(rdm, percentile=False, rescale=False, lim=[0, 1], conditions=None, 
     """
 
     if len(np.shape(rdm)) != 2 or np.shape(rdm)[0] != np.shape(rdm)[1]:
-
         return "Invalid input!"
 
     # get the number of conditions
@@ -144,7 +143,7 @@ def plot_rdm(rdm, percentile=False, rescale=False, lim=[0, 1], conditions=None, 
         cb.set_label("Dissimilarity", fontdict=font)
 
     if conditions != None:
-        print("1")
+        print(f'Plotting conditions: {conditions}')
         step = float(1 / cons)
         x = np.arange(0.5 * step, 1 + 0.5 * step, step)
         y = np.arange(1 - 0.5 * step, -0.5 * step, -step)
@@ -153,15 +152,20 @@ def plot_rdm(rdm, percentile=False, rescale=False, lim=[0, 1], conditions=None, 
     else:
         plt.axis("off")
 
-    plt.show()
-
+    if title:
+        plt.title(title)
+    if save_to_file:
+        plt.savefig(save_to_file)
+        plt.close()
+    else:
+        plt.show()
     return 0
 
 
 ' a function for plotting the RDM with values '
 
-def plot_rdm_withvalue(rdm, lim=[0, 1], value_fontsize=10, conditions=None, con_fontsize=12, cmap=None):
 
+def plot_rdm_withvalue(rdm, lim=[0, 1], value_fontsize=10, conditions=None, con_fontsize=12, cmap=None):
     """
     Plot the RDM with values
 
@@ -184,7 +188,6 @@ def plot_rdm_withvalue(rdm, lim=[0, 1], value_fontsize=10, conditions=None, con_
     """
 
     if len(np.shape(rdm)) != 2 or np.shape(rdm)[0] != np.shape(rdm)[1]:
-
         return "Invalid input!"
 
     # get the number of conditions
@@ -240,8 +243,8 @@ def plot_rdm_withvalue(rdm, lim=[0, 1], value_fontsize=10, conditions=None, con_
 
 ' a function for plotting the correlation coefficients by time sequence '
 
-def plot_corrs_by_time(corrs, labels=None, time_unit=[0, 0.1]):
 
+def plot_corrs_by_time(corrs, labels=None, time_unit=[0, 0.1]):
     """
     plot the correlation coefficients by time sequence
 
@@ -260,7 +263,6 @@ def plot_corrs_by_time(corrs, labels=None, time_unit=[0, 0.1]):
     """
 
     if len(np.shape(corrs)) < 2 or len(np.shape(corrs)) > 3:
-
         return "Invalid input!"
 
     # get the number of curves
@@ -302,15 +304,15 @@ def plot_corrs_by_time(corrs, labels=None, time_unit=[0, 0.1]):
     # get the min value
     vmin = np.min(y_soft)
 
-    if vmax <= 1/1.1:
-        ymax = np.max(y_soft)*1.1
+    if vmax <= 1 / 1.1:
+        ymax = np.max(y_soft) * 1.1
     else:
         ymax = 1
 
     if vmin >= 0:
         ymin = -0.1
-    elif vmin < 0 and vmin > -1/1.1:
-        ymin = np.min(y_soft)*1.1
+    elif vmin < 0 and vmin > -1 / 1.1:
+        ymin = np.min(y_soft) * 1.1
     else:
         ymin = -1
 
@@ -341,9 +343,9 @@ def plot_corrs_by_time(corrs, labels=None, time_unit=[0, 0.1]):
 
 ' a function for plotting the time-by-time Similarities with statistical results'
 
+
 def plot_tbytsim_withstats(similarities, start_time=0, end_time=1, smooth=True, p=0.05, cbpt=True, color='r',
                            lim=[-0.1, 0.8], figsize=[6.4, 3.6], x0=0, fontsize=16):
-
     """
     Plot the time-by-time Similarities with statistical results
 
@@ -376,7 +378,6 @@ def plot_tbytsim_withstats(similarities, start_time=0, end_time=1, smooth=True, 
     """
 
     if len(np.shape(similarities)) < 2 or len(np.shape(similarities)) > 3:
-
         return "Invalid input!"
 
     n = len(np.shape(similarities))
@@ -390,24 +391,24 @@ def plot_tbytsim_withstats(similarities, start_time=0, end_time=1, smooth=True, 
     nsubs = np.shape(similarities)[0]
     nts = np.shape(similarities)[1]
 
-    tstep = float((end_time-start_time)/nts)
+    tstep = float((end_time - start_time) / nts)
 
     if smooth is True:
         for sub in range(nsubs):
             for t in range(nts):
 
-                if t<=1:
-                    similarities[sub, t] = np.average(similarities[sub, :t+3])
-                if t>1 and t<(nts-2):
-                    similarities[sub, t] = np.average(similarities[sub, t-2:t+3])
-                if t>=(nts-2):
-                    similarities[sub, t] = np.average(similarities[sub, t-2:])
+                if t <= 1:
+                    similarities[sub, t] = np.average(similarities[sub, :t + 3])
+                if t > 1 and t < (nts - 2):
+                    similarities[sub, t] = np.average(similarities[sub, t - 2:t + 3])
+                if t >= (nts - 2):
+                    similarities[sub, t] = np.average(similarities[sub, t - 2:])
 
     avg = np.average(similarities, axis=0)
     err = np.zeros([nts], dtype=np.float)
 
     for t in range(nts):
-        err[t] = np.std(similarities[:, t], ddof=1)/np.sqrt(nsubs)
+        err[t] = np.std(similarities[:, t], ddof=1) / np.sqrt(nsubs)
 
     if cbpt == True:
         ps = clusterbased_permutation_1d_1samp_1sided(similarities, level=0, p_threshold=p)
@@ -422,10 +423,10 @@ def plot_tbytsim_withstats(similarities, start_time=0, end_time=1, smooth=True, 
 
     for t in range(nts):
         if ps[t] == 1:
-            plt.plot(t*tstep+start_time, (maxlim-minlim)*0.9+minlim, 's', color=color, alpha=1)
-            xi = [t*tstep+start_time, t*tstep+tstep+start_time]
+            plt.plot(t * tstep + start_time, (maxlim - minlim) * 0.9 + minlim, 's', color=color, alpha=1)
+            xi = [t * tstep + start_time, t * tstep + tstep + start_time]
             ymin = [0]
-            ymax = [avg[t]-err[t]]
+            ymax = [avg[t] - err[t]]
             plt.fill_between(xi, ymax, ymin, facecolor=color, alpha=0.1)
 
     fig = plt.gcf()
@@ -439,7 +440,7 @@ def plot_tbytsim_withstats(similarities, start_time=0, end_time=1, smooth=True, 
     ax.spines["bottom"].set_linewidth(3)
     ax.spines['bottom'].set_position(('data', 0))
 
-    x = np.arange(start_time+0.5*tstep, end_time+0.5*tstep, tstep)
+    x = np.arange(start_time + 0.5 * tstep, end_time + 0.5 * tstep, tstep)
     plt.fill_between(x, avg + err, avg - err, facecolor=color, alpha=0.8)
     plt.ylim(minlim, maxlim)
     plt.xlim(start_time, end_time)
@@ -453,10 +454,10 @@ def plot_tbytsim_withstats(similarities, start_time=0, end_time=1, smooth=True, 
 
 ' a function for plotting the time-by-time decoding accuracies '
 
+
 def plot_tbyt_decoding_acc(acc, start_time=0, end_time=1, time_interval=0.01, chance=0.5, p=0.05, cbpt=True,
                            stats_time=[0, 1], color='r', xlim=[0, 1], ylim=[0.4, 0.8], figsize=[6.4, 3.6], x0=0,
                            fontsize=16, avgshow=False):
-
     """
     Plot the time-by-time decoding accuracies
 
@@ -497,14 +498,12 @@ def plot_tbyt_decoding_acc(acc, start_time=0, end_time=1, time_interval=0.01, ch
     """
 
     if len(np.shape(acc)) != 2:
-
         return "Invalid input!"
 
     nsubs, nts = np.shape(acc)
     tstep = float(Decimal((end_time - start_time) / nts).quantize(Decimal(str(time_interval))))
 
     if tstep != time_interval:
-
         return "Invalid input!"
 
     delta1 = (stats_time[0] - start_time) / tstep - int((stats_time[0] - start_time) / tstep)
@@ -536,7 +535,7 @@ def plot_tbyt_decoding_acc(acc, start_time=0, end_time=1, time_interval=0.01, ch
     else:
         ps = np.zeros([nts])
         for t in range(nts):
-            if t >= stats_time1 and t< stats_time2:
+            if t >= stats_time1 and t < stats_time2:
                 ps[t] = ttest_1samp(acc[:, t], chance, alternative="greater")[1]
                 if ps[t] < p:
                     ps[t] = 1
@@ -545,8 +544,9 @@ def plot_tbyt_decoding_acc(acc, start_time=0, end_time=1, time_interval=0.01, ch
 
     for t in range(nts):
         if ps[t] == 1:
-            plt.plot(t*tstep+start_time+0.5*tstep, (ymaxlim-yminlim)*0.9+yminlim, 's', color=color, alpha=0.8)
-            xi = [t*tstep+start_time, t*tstep+tstep+start_time]
+            plt.plot(t * tstep + start_time + 0.5 * tstep, (ymaxlim - yminlim) * 0.9 + yminlim, 's', color=color,
+                     alpha=0.8)
+            xi = [t * tstep + start_time, t * tstep + tstep + start_time]
             ymin = [chance]
             ymax = [avg[t] - err[t]]
             plt.fill_between(xi, ymax, ymin, facecolor=color, alpha=0.2)
@@ -560,10 +560,10 @@ def plot_tbyt_decoding_acc(acc, start_time=0, end_time=1, time_interval=0.01, ch
     ax.spines["left"].set_position(("data", x0))
     ax.spines["bottom"].set_linewidth(3)
     ax.spines["bottom"].set_position(("data", chance))
-    x = np.arange(start_time+0.5*tstep, end_time+0.5*tstep, tstep)
+    x = np.arange(start_time + 0.5 * tstep, end_time + 0.5 * tstep, tstep)
     if avgshow is True:
         plt.plot(x, avg, color=color, alpha=0.9)
-    plt.fill_between(x, avg+err, avg-err, facecolor=color, alpha=0.8)
+    plt.fill_between(x, avg + err, avg - err, facecolor=color, alpha=0.8)
     plt.ylim(yminlim, ymaxlim)
     plt.xlim(xlim[0], xlim[1])
     plt.tick_params(labelsize=12)
@@ -574,10 +574,10 @@ def plot_tbyt_decoding_acc(acc, start_time=0, end_time=1, time_interval=0.01, ch
 
 ' a function for plotting cross-temporal decoding accuracies '
 
+
 def plot_ct_decoding_acc(acc, start_timex=0, end_timex=1, start_timey=0, end_timey=1, time_intervalx=0.01,
                          time_intervaly=0.01, chance=0.5, p=0.05, cbpt=True, stats_timex=[0, 1], stats_timey=[0, 1],
                          xlim=[0, 1], ylim=[0, 1], clim=[0.4, 0.8], figsize=[6.4, 4.8], cmap="viridis", fontsize=16):
-
     """
     Plot the cross-temporal decoding accuracies
 
@@ -708,8 +708,8 @@ def plot_ct_decoding_acc(acc, start_timex=0, end_timex=1, start_timey=0, end_tim
 
 ' a function for plotting the hotmap of correlations coefficients for channels/regions by time sequence '
 
-def plot_corrs_hotmap(corrs, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], smooth=False, figsize=None, cmap=None):
 
+def plot_corrs_hotmap(corrs, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], smooth=False, figsize=None, cmap=None):
     """
     plot the hotmap of correlation coefficients for channels/regions by time sequence
 
@@ -738,7 +738,6 @@ def plot_corrs_hotmap(corrs, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], smo
     """
 
     if len(np.shape(corrs)) < 2 or len(np.shape(corrs)) > 3:
-
         return "Invalid input!"
 
     # get the number of channels
@@ -766,13 +765,13 @@ def plot_corrs_hotmap(corrs, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], smo
         for i in range(nchls):
 
             if i % 10 == 0 and i != 10:
-                newlabel = str(i+1) + "st"
+                newlabel = str(i + 1) + "st"
             elif i % 10 == 1 and i != 11:
-                newlabel = str(i+1) + "nd"
+                newlabel = str(i + 1) + "nd"
             elif i % 10 == 2 and i != 12:
-                newlabel = str(i+1) + "rd"
+                newlabel = str(i + 1) + "rd"
             else:
-                newlabel = str(i+1) + "th"
+                newlabel = str(i + 1) + "th"
 
             chllabels.append(newlabel)
 
@@ -785,7 +784,7 @@ def plot_corrs_hotmap(corrs, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], smo
         y_soft = np.zeros([nchls, t])
 
         samplerate = int(1 / tstep) * 50
-        b, a = signal.butter(4, 2*30/samplerate, 'lowpass')
+        b, a = signal.butter(4, 2 * 30 / samplerate, 'lowpass')
 
         for i in range(nchls):
 
@@ -813,7 +812,8 @@ def plot_corrs_hotmap(corrs, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], smo
     limmax = lim[1]
 
     if cmap == None:
-        plt.imshow(rlts, extent=(start_t, end_t, 0, nchls*0.16), clim=(limmin, limmax), origin='lower', cmap='inferno')
+        plt.imshow(rlts, extent=(start_t, end_t, 0, nchls * 0.16), clim=(limmin, limmax), origin='lower',
+                   cmap='inferno')
     else:
         plt.imshow(rlts, extent=(start_t, end_t, 0, nchls * 0.16), clim=(limmin, limmax), origin='lower', cmap=cmap)
 
@@ -821,8 +821,8 @@ def plot_corrs_hotmap(corrs, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], smo
     size = fig.get_size_inches()
 
     if figsize == None:
-        size_x = ts*tstep*(size[0]-2)+2
-        size_y = nchls*0.2*(size[1]-1.5)+1.5
+        size_x = ts * tstep * (size[0] - 2) + 2
+        size_y = nchls * 0.2 * (size[1] - 1.5) + 1.5
     else:
         size_x = figsize[0]
         size_y = figsize[1]
@@ -837,7 +837,7 @@ def plot_corrs_hotmap(corrs, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], smo
     xi = []
 
     for i in range(nchls):
-        xi.append(0.16*i + 0.08)
+        xi.append(0.16 * i + 0.08)
 
     yi = chllabels
 
@@ -853,8 +853,9 @@ def plot_corrs_hotmap(corrs, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], smo
 
 ' a function for plotting the hotmap of correlations coefficients for channels/regions by time sequence with the significant outline '
 
-def plot_corrs_hotmap_stats(corrs, stats, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], p_threshold=0.05, time_threshold=5, smooth=False, figsize=None, cmap=None):
 
+def plot_corrs_hotmap_stats(corrs, stats, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], p_threshold=0.05,
+                            time_threshold=5, smooth=False, figsize=None, cmap=None):
     """
     plot the hotmap of correlation coefficients for channels/regions by time sequence with the significant outline
 
@@ -892,7 +893,6 @@ def plot_corrs_hotmap_stats(corrs, stats, chllabels=None, time_unit=[0, 0.1], li
     """
 
     if len(np.shape(corrs)) < 2 or len(np.shape(corrs)) > 3:
-
         return "Invalid input!"
 
     # get the number of channels
@@ -920,13 +920,13 @@ def plot_corrs_hotmap_stats(corrs, stats, chllabels=None, time_unit=[0, 0.1], li
         for i in range(nchls):
 
             if i % 10 == 0 and i != 10:
-                newlabel = str(i+1) + "st"
+                newlabel = str(i + 1) + "st"
             elif i % 10 == 1 and i != 11:
-                newlabel = str(i+1) + "nd"
+                newlabel = str(i + 1) + "nd"
             elif i % 10 == 2 and i != 12:
-                newlabel = str(i+1) + "rd"
+                newlabel = str(i + 1) + "rd"
             else:
-                newlabel = str(i+1) + "th"
+                newlabel = str(i + 1) + "th"
 
             chllabels.append(newlabel)
 
@@ -939,7 +939,7 @@ def plot_corrs_hotmap_stats(corrs, stats, chllabels=None, time_unit=[0, 0.1], li
         y_soft = np.zeros([nchls, t])
 
         samplerate = int(1 / tstep) * 50
-        b, a = signal.butter(4, 2*30/samplerate, 'lowpass')
+        b, a = signal.butter(4, 2 * 30 / samplerate, 'lowpass')
 
         for i in range(nchls):
 
@@ -1014,9 +1014,9 @@ def plot_corrs_hotmap_stats(corrs, stats, chllabels=None, time_unit=[0, 0.1], li
     limmin = lim[0]
     limmax = lim[1]
 
-
     if cmap == None:
-        plt.imshow(rlts, extent=(start_t, end_t, 0, nchls*0.16), clim=(limmin, limmax), origin='lower', cmap='inferno')
+        plt.imshow(rlts, extent=(start_t, end_t, 0, nchls * 0.16), clim=(limmin, limmax), origin='lower',
+                   cmap='inferno')
     else:
         plt.imshow(rlts, extent=(start_t, end_t, 0, nchls * 0.16), clim=(limmin, limmax), origin='lower', cmap=cmap)
 
@@ -1024,8 +1024,8 @@ def plot_corrs_hotmap_stats(corrs, stats, chllabels=None, time_unit=[0, 0.1], li
     size = fig.get_size_inches()
 
     if figsize == None:
-        size_x = ts*tstep*(size[0]-2)+2
-        size_y = nchls*0.2*(size[1]-1.5)+1.5
+        size_x = ts * tstep * (size[0] - 2) + 2
+        size_y = nchls * 0.2 * (size[1] - 1.5) + 1.5
     else:
         size_x = figsize[0]
         size_y = figsize[1]
@@ -1040,7 +1040,7 @@ def plot_corrs_hotmap_stats(corrs, stats, chllabels=None, time_unit=[0, 0.1], li
     xi = []
 
     for i in range(nchls):
-        xi.append(0.16*i + 0.08)
+        xi.append(0.16 * i + 0.08)
 
     yi = chllabels
 
@@ -1056,8 +1056,9 @@ def plot_corrs_hotmap_stats(corrs, stats, chllabels=None, time_unit=[0, 0.1], li
 
 ' a function for plotting the hotmap of neural pattern similarities for channels/regions by time sequence '
 
-def plot_nps_hotmap(similarities, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], abs=False, smooth=False, figsize=None, cmap=None):
 
+def plot_nps_hotmap(similarities, chllabels=None, time_unit=[0, 0.1], lim=[0, 1], abs=False, smooth=False, figsize=None,
+                    cmap=None):
     """
     plot the hotmap of neural pattern similarities for channels/regions by time sequence
 
@@ -1087,7 +1088,6 @@ def plot_nps_hotmap(similarities, chllabels=None, time_unit=[0, 0.1], lim=[0, 1]
     """
 
     if len(np.shape(similarities)) != 2:
-
         return "Invalid input!"
 
     # absolute value
@@ -1136,7 +1136,7 @@ def plot_nps_hotmap(similarities, chllabels=None, time_unit=[0, 0.1], lim=[0, 1]
         y_soft = np.zeros([nchls, t])
 
         samplerate = int(1 / tstep) * 50
-        b, a = signal.butter(4, 2*30/samplerate, 'lowpass')
+        b, a = signal.butter(4, 2 * 30 / samplerate, 'lowpass')
 
         for i in range(nchls):
             f = interp1d(x, similarities[i, :], kind='cubic')
@@ -1155,7 +1155,7 @@ def plot_nps_hotmap(similarities, chllabels=None, time_unit=[0, 0.1], lim=[0, 1]
     limmax = lim[1]
 
     if cmap == None:
-        plt.imshow(rlts, extent=(start_t, end_t, 0, nchls*0.16), clim=(limmin, limmax), origin='lower')
+        plt.imshow(rlts, extent=(start_t, end_t, 0, nchls * 0.16), clim=(limmin, limmax), origin='lower')
     else:
         plt.imshow(rlts, extent=(start_t, end_t, 0, nchls * 0.16), clim=(limmin, limmax), origin='lower', cmap=cmap)
 
@@ -1163,8 +1163,8 @@ def plot_nps_hotmap(similarities, chllabels=None, time_unit=[0, 0.1], lim=[0, 1]
     size = fig.get_size_inches()
 
     if figsize == None:
-        size_x = ts*tstep*(size[0]-2)+2
-        size_y = nchls*0.2*(size[1]-1.5)+1.5
+        size_x = ts * tstep * (size[0] - 2) + 2
+        size_y = nchls * 0.2 * (size[1] - 1.5) + 1.5
     else:
         size_x = figsize[0]
         size_y = figsize[1]
@@ -1179,7 +1179,7 @@ def plot_nps_hotmap(similarities, chllabels=None, time_unit=[0, 0.1], lim=[0, 1]
     xi = []
 
     for i in range(nchls):
-        xi.append(0.16*i + 0.08)
+        xi.append(0.16 * i + 0.08)
 
     yi = chllabels
 
@@ -1195,8 +1195,9 @@ def plot_nps_hotmap(similarities, chllabels=None, time_unit=[0, 0.1], lim=[0, 1]
 
 ' a function for plotting the hotmap of statistical results for channels/regions by time sequence '
 
-def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], smooth=False, figsize=None, cmap=None, outline=False, p_threshold=0.05, time_threshold=5):
 
+def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], smooth=False, figsize=None, cmap=None,
+                      outline=False, p_threshold=0.05, time_threshold=5):
     """
     plot the hotmap of statistical results for channels/regions by time sequence
 
@@ -1231,7 +1232,6 @@ def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], sm
     """
 
     if len(np.shape(stats)) != 3:
-
         return "Invalid input!"
 
     statscopy = stats.copy()
@@ -1278,7 +1278,7 @@ def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], sm
         y_soft = np.zeros([nchls, t])
 
         samplerate = int(1 / tstep) * 50
-        b, a = signal.butter(4, 2*30/samplerate, 'lowpass')
+        b, a = signal.butter(4, 2 * 30 / samplerate, 'lowpass')
 
         for i in range(nchls):
             f = interp1d(x, statscopy[i, :, 0], kind='cubic')
@@ -1321,13 +1321,13 @@ def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], sm
             for j in pid_list:
                 index = 0
                 for k in range(time_threshold):
-                    if j+k in pid_list:
+                    if j + k in pid_list:
                         index = index
                     else:
                         index = index + 1
                 if index == 0:
                     for k in range(time_threshold):
-                        pid_set.add(j+k)
+                        pid_set.add(j + k)
             pid_list = list(pid_set)
             pid_list.sort()
             for j in range(ts):
@@ -1335,11 +1335,11 @@ def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], sm
                 if index == False:
                     ps[i, j] = 0
 
-        newps = np.zeros([nchls+2, ts+2], dtype=np.float)
-        newps[1:nchls+1, 1:ts+1] = ps
+        newps = np.zeros([nchls + 2, ts + 2], dtype=np.float)
+        newps[1:nchls + 1, 1:ts + 1] = ps
 
-        x = np.linspace(start_t-0.5*tstep, end_t+0.5*tstep, ts+2)
-        y = np.linspace(-0.08, 0.16*nchls+0.08, nchls+2)
+        x = np.linspace(start_t - 0.5 * tstep, end_t + 0.5 * tstep, ts + 2)
+        y = np.linspace(-0.08, 0.16 * nchls + 0.08, nchls + 2)
         X, Y = np.meshgrid(x, y)
         plt.contour(X, Y, newps, (-0.5, 0.5), linewidths=3)
 
@@ -1347,8 +1347,8 @@ def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], sm
     size = fig.get_size_inches()
 
     if figsize == None:
-        size_x = ts*tstep*(size[0]-2)+2
-        size_y = nchls*0.2*(size[1]-1.5)+1.5
+        size_x = ts * tstep * (size[0] - 2) + 2
+        size_y = nchls * 0.2 * (size[1] - 1.5) + 1.5
     else:
         size_x = figsize[0]
         size_y = figsize[1]
@@ -1356,7 +1356,7 @@ def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], sm
     fig.set_size_inches(size_x, size_y)
 
     if cmap == None:
-        plt.imshow(rlts, extent=(start_t, end_t, 0, nchls*0.16), clim=(limmin, limmax), origin='lower')
+        plt.imshow(rlts, extent=(start_t, end_t, 0, nchls * 0.16), clim=(limmin, limmax), origin='lower')
     else:
         plt.imshow(rlts, extent=(start_t, end_t, 0, nchls * 0.16), clim=(limmin, limmax), origin='lower', cmap=cmap)
 
@@ -1368,7 +1368,7 @@ def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], sm
     xi = []
 
     for i in range(nchls):
-        xi.append(0.16*i + 0.08)
+        xi.append(0.16 * i + 0.08)
 
     yi = chllabels
 
@@ -1385,8 +1385,8 @@ def plot_stats_hotmap(stats, chllabels=None, time_unit=[0, 0.1], lim=[-7, 7], sm
 
 ' a function for plotting the RSA-result regions by 3 cuts (frontal, axial & lateral) '
 
-def plot_brainrsa_regions(img, threshold=None, background=get_bg_ch2(), type='r'):
 
+def plot_brainrsa_regions(img, threshold=None, background=get_bg_ch2(), type='r'):
     """
     Plot the RSA-result regions by 3 cuts (frontal, axial & lateral)
 
@@ -1411,7 +1411,6 @@ def plot_brainrsa_regions(img, threshold=None, background=get_bg_ch2(), type='r'
 
     else:
         if threshold != None:
-
             imgarray = nib.load(img).get_fdata()
             affine = get_affine(img)
 
@@ -1421,7 +1420,7 @@ def plot_brainrsa_regions(img, threshold=None, background=get_bg_ch2(), type='r'
 
         if type == 'r':
             plotting.plot_roi(roi_img=img, bg_img=background, threshold=0, vmin=0.1, vmax=1,
-                          title="Similarity", resampling_interpolation="continuous")
+                              title="Similarity", resampling_interpolation="continuous")
         if type == 't':
             plotting.plot_roi(roi_img=img, bg_img=background, threshold=0, vmin=-7, vmax=7,
                               title="Similarity", resampling_interpolation="continuous")
@@ -1433,9 +1432,9 @@ def plot_brainrsa_regions(img, threshold=None, background=get_bg_ch2(), type='r'
 
 ' a function for plotting the RSA-result by different cuts '
 
+
 def plot_brainrsa_montage(img, threshold=None, slice=[6, 6, 6], background=get_bg_ch2bet(), type='r',
                           save_to_file=None):
-
     """
     Plot the RSA-result by different cuts
 
@@ -1484,15 +1483,15 @@ def plot_brainrsa_montage(img, threshold=None, slice=[6, 6, 6], background=get_b
 
         if slice_x != 0:
             plotting.plot_stat_map(stat_map_img=img, bg_img=background, display_mode='x', cut_coords=slice_x,
-                                title="Similarity -sagittal", draw_cross=True, vmax=vmax)
+                                   title="Similarity -sagittal", draw_cross=True, vmax=vmax)
 
         if slice_y != 0:
             plotting.plot_stat_map(stat_map_img=img, bg_img=background, display_mode='y', cut_coords=slice_y,
-                                title="Similarity -coronal", draw_cross=True, vmax=vmax)
+                                   title="Similarity -coronal", draw_cross=True, vmax=vmax)
 
         if slice_z != 0:
             plotting.plot_stat_map(stat_map_img=img, bg_img=background, display_mode='z', cut_coords=slice_z,
-                                title="Similarity -axial", draw_cross=True, vmax=vmax)
+                                   title="Similarity -axial", draw_cross=True, vmax=vmax)
 
         if save_to_file:
             plt.savefig(save_to_file)
@@ -1504,8 +1503,8 @@ def plot_brainrsa_montage(img, threshold=None, slice=[6, 6, 6], background=get_b
 
 ' a function for plotting the 2-D projection of the RSA-result '
 
-def plot_brainrsa_glass(img, threshold=None, type='r'):
 
+def plot_brainrsa_glass(img, threshold=None, type='r'):
     """
     Plot the 2-D projection of the RSA-result
 
@@ -1529,7 +1528,6 @@ def plot_brainrsa_glass(img, threshold=None, type='r'):
 
     else:
         if threshold != None:
-
             imgarray = nib.load(img).get_fdata()
             affine = get_affine(img)
             imgarray = correct_by_threshold(imgarray, threshold)
@@ -1547,8 +1545,8 @@ def plot_brainrsa_glass(img, threshold=None, type='r'):
 
 ' a function for plotting the RSA-result into a brain surface '
 
-def plot_brainrsa_surface(img, threshold=None, type='r'):
 
+def plot_brainrsa_surface(img, threshold=None, type='r'):
     """
     Plot the RSA-result into a brain surface
 
@@ -1573,7 +1571,6 @@ def plot_brainrsa_surface(img, threshold=None, type='r'):
     else:
 
         if threshold != None:
-
             imgarray = nib.load(img).get_fdata()
             affine = get_affine(img)
             imgarray = correct_by_threshold(imgarray, threshold)
@@ -1618,11 +1615,10 @@ def plot_brainrsa_surface(img, threshold=None, type='r'):
     return 0
 
 
-
 ' a function for plotting the RSA-result by a set of images '
 
-def plot_brainrsa_rlts(img, threshold=None, slice=[6, 6, 6], background=None, type='r'):
 
+def plot_brainrsa_rlts(img, threshold=None, slice=[6, 6, 6], background=None, type='r'):
     """
     Plot the RSA-result by a set of images
 
@@ -1647,7 +1643,6 @@ def plot_brainrsa_rlts(img, threshold=None, slice=[6, 6, 6], background=None, ty
     else:
 
         if threshold != None:
-
             imgarray = nib.load(img).get_fdata()
             affine = get_affine(img)
             imgarray = correct_by_threshold(imgarray, threshold)
