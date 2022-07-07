@@ -485,7 +485,10 @@ def eegRDM(EEG_data, sub_opt=1, chl_opt=0, time_opt=0, time_win=5, time_step=5, 
 ' a function for calculating the RDMs based on fMRI data (searchlight) '
 
 
-def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="correlation", abs=False):
+def fmriRDM(
+        fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="correlation", abs=False,
+        save_pval: str = None
+):
     """
     Calculate the Representational Dissimilarity Matrices (RDMs) based on fMRI data (searchlight)
 
@@ -512,6 +515,8 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
         If method='mahalanobis', the dissimilarity is calculated by Mahalanobis Distance, the results will be normalized.
     abs : boolean True or False. Default is True.
         Calculate the absolute value of Pearson r or not.
+    save_pval: str. Output path to save the corresponding p value for rdm. Currently supports
+        pearson only.
 
     Returns
     -------
@@ -577,6 +582,8 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
     # initialize the RDMs
     subrdms = np.full([subs, n_x, n_y, n_z, cons, cons], np.nan)
 
+    rdms_pval = np.full([subs, n_x, n_y, n_z, cons, cons], np.nan)
+
     total = subs * n_x * n_y * n_z
 
     for sub in range(subs):
@@ -596,12 +603,15 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
                                     (np.isnan(data[:, x, y, z, j]).any() == False):
                                 if method == 'correlation':
                                     # calculate the Pearson Coefficient
-                                    r = pearsonr(data[sub, x, y, z, i], data[sub, x, y, z, j])[0]
+                                    pr = pearsonr(data[sub, x, y, z, i], data[sub, x, y, z, j])
                                     # calculate the dissimilarity
                                     if abs == True:
-                                        subrdms[sub, x, y, z, i, j] = limtozero(1 - np.abs(r))
+                                        subrdms[sub, x, y, z, i, j] = limtozero(1 - np.abs(pr[0]))
                                     else:
-                                        subrdms[sub, x, y, z, i, j] = limtozero(1 - r)
+                                        subrdms[sub, x, y, z, i, j] = limtozero(1 - pr[0])
+
+                                    if save_pval:
+                                        rdms_pval[sub, x, y, z, i, j] = pr[1]
                                 elif method == 'euclidean':
                                     subrdms[sub, x, y, z, i, j] = np.linalg.norm(
                                         data[sub, x, y, z, i] - data[sub, x, y, z, j])
@@ -616,6 +626,9 @@ def fmriRDM(fmri_data, ksize=[3, 3, 3], strides=[1, 1, 1], sub_opt=1, method="co
 
     # average the RDMs
     rdms = np.average(subrdms, axis=0)
+    if save_pval:
+        rdms_pval_avg = np.average(rdms_pval, axis=0)
+        np.savetxt(rdms_pval_avg, save_pval)
 
     print("\nRDMs computing finished!")
 
@@ -692,7 +705,7 @@ def fmriRDM_roi(fmri_data, mask_data, sub_opt=1, method="correlation", abs=False
     # initialize the data for calculating the RDM
     data = np.zeros([ncons, nsubs, n], dtype=np.float)
 
-    print("\nComputing RDMs")
+    print(f"\nComputing RDMs for mask {np.sum(mask_data)}")
 
     # assignment
     for p in range(ncons):
