@@ -612,7 +612,6 @@ def fmriRDM_optimized(
                         max = np.max(subrdms[sub, x, y, z])
                         min = np.min(subrdms[sub, x, y, z])
                         subrdms[sub, x, y, z] = (subrdms[sub, x, y, z] - min) / (max - min)
-        break
 
     # shape of data: [n_x, n_y, n_z, cons, kx*ky*kz, subs]
     #              ->[subs, n_x, n_y, n_z, cons, kx*ky*kz]

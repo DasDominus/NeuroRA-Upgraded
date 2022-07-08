@@ -215,7 +215,7 @@ def corr_save_nii(corrs, affine, filename=None, corr_mask=get_HOcort(), size=[60
         print("Plot RSA results.")
         plot_brainrsa_rlts(filename, background=img_background, type='r')
 
-    return newimg_nii
+    return newimg_nii, not norlt
 
 
 ' a function for saving the searchlight statistical results as a NIfTI file for fMRI '
